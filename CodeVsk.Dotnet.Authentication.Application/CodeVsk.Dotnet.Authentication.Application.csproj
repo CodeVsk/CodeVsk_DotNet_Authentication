@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.9.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\codevsk.dotnet.authentication.domain\CodeVsk.Dotnet.Authentication.Domain.csproj" />
+    <ProjectReference Include="..\CodeVsk.Dotnet.Authentication.Infra\CodeVsk.Dotnet.Authentication.Infra.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,6 @@
+@codevsk.dotnet.authentication.api_HostAddress = http://localhost:5079
+
+GET {{codevsk.dotnet.authentication.api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
