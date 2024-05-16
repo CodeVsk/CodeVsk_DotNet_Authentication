@@ -12,4 +12,13 @@ namespace CodeVsk.Dotnet.Authentication.Application.Validators
             RuleFor(x => x.Password).MinimumLength(5).WithMessage("A senha deve conter no minimo 5 caracteres.");
         }
     }
+
+    public class SigninRequestValidator : AbstractValidator<SigninRequestDto>
+    {
+        public SigninRequestValidator()
+        {
+            RuleFor(x => x.Email).NotEmpty().WithMessage("O email é obrigatório.").EmailAddress().WithMessage("Insira um email válido.");
+            RuleFor(x => x.Password).NotEmpty().WithMessage("A senha é obrigatório.").MinimumLength(5).WithMessage("A senha deve conter no minimo 5 caracteres.");
+        }
+    }
 }

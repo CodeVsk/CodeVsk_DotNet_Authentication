@@ -8,5 +8,7 @@ namespace CodeVsk.Dotnet.Authentication.Application.DataTransferObjects.Auth
 {
     public class SigninRequestDto
     {
+        public string Email { get;set; }
+        public string Password { get;set; }
     }
 }

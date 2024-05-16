@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CodeVsk.Dotnet.Authentication.Application.Responses
 {
@@ -7,7 +8,6 @@ namespace CodeVsk.Dotnet.Authentication.Application.Responses
         public T Values { get; set; }
         public string Status { get; set; }
         public IList<string> Errors { get; set; } = new List<string>();
-
 
         public Response(IEnumerable<IdentityError> errors) 
         {
@@ -19,6 +19,12 @@ namespace CodeVsk.Dotnet.Authentication.Application.Responses
         {
             Status = "success";
             Values = values;
+        }
+
+        public Response(string message)
+        {
+            Status = "error";
+            Errors.Add(message);
         }
     }
 }

@@ -1,6 +1,4 @@
-using CodeVsk.Dotnet.Authentication.Infra.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using CodeVsk.Dotnet.Authentication.Api.IoC;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +9,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<IdentityDataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
+
+builder.Services.RegisterServices(builder.Configuration);
+
 
 var app = builder.Build();
 
@@ -27,6 +28,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.UseAuthentication();
+
 app.MapControllers();
+
 
 app.Run();
