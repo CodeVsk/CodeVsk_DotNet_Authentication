@@ -21,21 +21,21 @@ namespace codevsk.dotnet.authentication.api.Controllers
         }
 
         [HttpPost]
+        [Route("signin")]
+        public async Task<ActionResult<Response<SigninResponseDto>>> Signin([FromBody] SigninRequestDto signinRequestDto, CancellationToken cancellationToken)
+        {
+            Response<SigninResponseDto> signinResponseDto = await _authService.Signin(signinRequestDto, cancellationToken);
+
+            return signinResponseDto;
+        }
+
+        [HttpPost]
         [Route("signup")]
         public async Task<ActionResult<Response<SignupResponseDto>>> Signup([FromBody] SignupRequestDto signupRequestDto, CancellationToken cancellationToken)
         {
             Response<SignupResponseDto> signupResponseDto = await _authService.Signup(signupRequestDto, cancellationToken);
 
             return signupResponseDto;
-        }
-
-        [HttpPost]
-        [Route("token")]
-        public async Task<ActionResult<dynamic>> Signup([FromBody] string email)
-        {
-            var result = await _authService.GenerateToken(email);
-
-            return result;
         }
     }
 }

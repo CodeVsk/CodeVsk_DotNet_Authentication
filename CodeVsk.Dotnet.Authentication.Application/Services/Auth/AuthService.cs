@@ -9,7 +9,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using System.Collections.Generic;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -24,7 +24,7 @@ namespace CodeVsk.Dotnet.Authentication.Application.Services.Authentication
 
         private readonly JwtConfigurations _jwtConfiguration;
 
-        public AuthService(IOptions<JwtConfigurations> jwtConfigurations, IRedisProvider redisProvider,  UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager) 
+        public AuthService(IOptions<JwtConfigurations> jwtConfigurations, IRedisProvider redisProvider, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -39,7 +39,7 @@ namespace CodeVsk.Dotnet.Authentication.Application.Services.Authentication
             SignupRequestValidator validator = new SignupRequestValidator();
             ValidationResult validated = await validator.ValidateAsync(signupRequestDto, cancellationToken);
 
-            if(!validated.IsValid)
+            if (!validated.IsValid)
             {
                 throw new ValidationException(validated.Errors);
             }
@@ -53,7 +53,7 @@ namespace CodeVsk.Dotnet.Authentication.Application.Services.Authentication
 
             IdentityResult createResult = await _userManager.CreateAsync(identityUser, signupRequestDto.Password);
 
-            if(!createResult.Succeeded)
+            if (!createResult.Succeeded)
             {
                 return new Response<SignupResponseDto>(createResult.Errors);
             }
@@ -79,35 +79,60 @@ namespace CodeVsk.Dotnet.Authentication.Application.Services.Authentication
                 throw new ValidationException(validated.Errors);
             }
 
-            IdentityUser identityUser = new IdentityUser()
+            SignInResult signInResult = await _signInManager.PasswordSignInAsync(signinRequestDto.Username, signinRequestDto.Password, false, true);
+
+            if (!signInResult.Succeeded)
             {
-                Email = signinRequestDto.Email,
-            };
-
-            
-            SignInResult signInResult = await _signInManager.PasswordSignInAsync(identityUser, signinRequestDto.Password, false, true);
-
-            if (signInResult.Succeeded)
-            {
-                //generate token include roles and claims 
-                //var token = GenerateToken();
-
+                if (signInResult.IsLockedOut)
+                    return new Response<SigninResponseDto>("Essa conta está bloqueada");
+                else if (signInResult.IsNotAllowed)
+                    return new Response<SigninResponseDto>("Essa conta não tem permissão para fazer login");
+                else
+                    return new Response<SigninResponseDto>("Usuário ou senha estão incorretos.");
             }
 
+            SigninResponseDto tokenResult = await GenerateToken(signinRequestDto.Username, cancellationToken);
 
+            if (tokenResult == null)
+            {
+                return new Response<SigninResponseDto>("Ocorreu uma falha ao geração do token.");
+            }
 
-            return new Response<SigninResponseDto>("Usuário ou senha estão incorretos.");
+            return new Response<SigninResponseDto>(tokenResult);
         }
 
-        public async Task<HashSet<Claim>> GenerateToken(string email, CancellationToken cancellationToken)
+        public async Task<SigninResponseDto> GenerateToken(string username, CancellationToken cancellationToken)
         {
-            IdentityUser user = await _userManager.FindByEmailAsync(email);
+            IdentityUser user = await _userManager.FindByNameAsync(username);
 
             HashSet<Claim> claims = await GetClaims(user);
 
-            await CreateRoleCache(user, cancellationToken);
+            string roleCache = await CreateRoleCache(user, cancellationToken);
 
-            return claims;
+            if (roleCache.IsNullOrEmpty())
+            {
+                return null;
+            }
+
+            DateTime expireAt = DateTime.Now.AddSeconds(_jwtConfiguration.AccessTokenExpiration);
+
+            JwtSecurityToken jwt = new JwtSecurityToken(
+                issuer: _jwtConfiguration.Issuer,
+                audience: _jwtConfiguration.Audience,
+                claims: claims,
+                notBefore: DateTime.Now,
+                expires: expireAt,
+                signingCredentials: _jwtConfiguration.SigningCredentials
+                );
+
+            string token = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+            SigninResponseDto signinResponseDto = new SigninResponseDto()
+            {
+                AccessToken = token
+            };
+
+            return signinResponseDto;
         }
 
         private async Task<string> CreateRoleCache(IdentityUser user, CancellationToken cancellationToken)
@@ -128,7 +153,9 @@ namespace CodeVsk.Dotnet.Authentication.Application.Services.Authentication
 
             claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email!));
             claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id!));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email!));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Nbf, DateTime.Now.ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Iat, DateTime.Now.ToString()));
 
             return claims;
         }

@@ -1,9 +1,7 @@
 ﻿using CodeVsk.Dotnet.Authentication.Application.Configurations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 namespace CodeVsk.Dotnet.Authentication.Api.Extensions
 {
@@ -12,14 +10,14 @@ namespace CodeVsk.Dotnet.Authentication.Api.Extensions
         public static void AddAuth(this IServiceCollection services, IConfiguration configuration)
         {
             var jwtOptions = configuration.GetSection(nameof(JwtConfigurations));
-            var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(configuration.GetSection("JwtOptions:SecurityKey").Value));
+            var securityKey = new SymmetricSecurityKey(Convert.FromBase64String(configuration.GetSection("JwtConfigurations:SecurityKey").Value));
 
             services.Configure<JwtConfigurations>(options =>
             {
                 options.Issuer = jwtOptions[nameof(JwtConfigurations.Issuer)];
                 options.Audience = jwtOptions[nameof(JwtConfigurations.Audience)];
                 options.SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha512);
-                options.Expiration = int.Parse(jwtOptions[nameof(JwtConfigurations.Expiration)] ?? "0");
+                options.AccessTokenExpiration = int.Parse(jwtOptions[nameof(JwtConfigurations.AccessTokenExpiration)] ?? "0");
             });
 
             services.Configure<IdentityOptions>(options =>

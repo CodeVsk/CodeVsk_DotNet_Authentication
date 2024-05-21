@@ -1,6 +1,5 @@
 ﻿using CodeVsk.Dotnet.Authentication.Application.DataTransferObjects.Auth;
 using FluentValidation;
-using System;
 
 namespace CodeVsk.Dotnet.Authentication.Application.Validators
 {
@@ -17,7 +16,7 @@ namespace CodeVsk.Dotnet.Authentication.Application.Validators
     {
         public SigninRequestValidator()
         {
-            RuleFor(x => x.Email).NotEmpty().WithMessage("O email é obrigatório.").EmailAddress().WithMessage("Insira um email válido.");
+            RuleFor(x => x.Username).NotEmpty().WithMessage("O nome de usuário é obrigatório.");
             RuleFor(x => x.Password).NotEmpty().WithMessage("A senha é obrigatório.").MinimumLength(5).WithMessage("A senha deve conter no minimo 5 caracteres.");
         }
     }

@@ -1,6 +1,8 @@
 ﻿using CodeVsk.Dotnet.Authentication.Application.Services.Auth.Interfaces;
 using CodeVsk.Dotnet.Authentication.Application.Services.Authentication;
+using CodeVsk.Dotnet.Authentication.Domain.Contracts.Providers;
 using CodeVsk.Dotnet.Authentication.Infra.Data;
+using CodeVsk.Dotnet.Authentication.Infra.Providers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +22,8 @@ namespace CodeVsk.Dotnet.Authentication.Api.IoC
                 .AddDefaultTokenProviders();
 
             services.AddScoped<IAuthService, AuthService>();
+
+            services.AddScoped<IRedisProvider, RedisProvider>();
         }
     }
 }

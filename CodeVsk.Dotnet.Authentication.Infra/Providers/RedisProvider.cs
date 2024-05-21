@@ -1,7 +1,6 @@
 ﻿using CodeVsk.Dotnet.Authentication.Domain.Contracts.Providers;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
-using System.Text.Json;
 
 namespace CodeVsk.Dotnet.Authentication.Infra.Providers
 {
